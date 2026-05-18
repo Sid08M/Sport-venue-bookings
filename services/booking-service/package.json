@@ -1,0 +1,22 @@
+{
+  "name": "booking-service",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "dev": "tsx index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ioredis": "^5.3.0",
+    "redlock": "^5.0.0-beta.2",
+    "zod": "^3.22.4",
+    "@repo/db": "*"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  }
+}

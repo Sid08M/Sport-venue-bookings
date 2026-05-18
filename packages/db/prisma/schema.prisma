@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  phone         String    @unique
+  email         String?   @unique
+  password      String
+  name          String
+  skillRating   Float     @default(1200.0) // ELO base
+  walletBalance Decimal   @default(0.0)
+  role          UserRole  @default(PLAYER)
+  bookings      Booking[]
+  joinedBookings BookingPlayer[]
+  matches       Match[]   @relation("MatchPlayers")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Venue {
+  id          String   @id @default(uuid())
+  ownerId     String
+  name        String
+  location    Json     // PostGIS Point data representation
+  address     String
+  isActive    Boolean  @default(true)
+  courts      Court[]
+  createdAt   DateTime @default(now())
+}
+
+model Court {
+  id          String   @id @default(uuid())
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  name        String
+  sportType   SportType
+  basePrice   Decimal
+  hourlyRate  Decimal   @default(0.0)
+  requiredPlayers Int   @default(2)
+  bookings    Booking[]
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  courtId       String
+  court         Court         @relation(fields: [courtId], references: [id])
+  startTime     DateTime
+  endTime       DateTime
+  totalAmount   Decimal
+  status        BookingStatus @default(CONFIRMED)
+  bookingType   BookingType   @default(SOLO)
+  activePlayerCount Int       @default(1)
+  paymentIntent String?
+  createdAt     DateTime      @default(now())
+  players       BookingPlayer[]
+
+  @@index([courtId, startTime, endTime]) // Critical for collision detection
+}
+
+model Match {
+  id        String   @id @default(uuid())
+  players   User[]   @relation("MatchPlayers")
+  createdAt DateTime @default(now())
+}
+
+enum UserRole {
+  PLAYER
+  VENUE_MANAGER
+  VENUE_OWNER
+  SUPER_ADMIN
+}
+
+enum SportType {
+  TENNIS
+  BADMINTON
+  PADEL
+  FOOTBALL
+  BASKETBALL
+}
+
+enum BookingStatus {
+  PENDING
+  PENDING_PAYMENT
+  GATHERING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum BookingType {
+  SOLO
+  COMMUNITY
+}
+
+model BookingPlayer {
+  id            String   @id @default(uuid())
+  bookingId     String
+  booking       Booking  @relation(fields: [bookingId], references: [id])
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  paymentIntent String?
+  amountPaid    Decimal
+  joinedAt      DateTime @default(now())
+  status        String   @default("AUTHORIZED") // AUTHORIZED, CAPTURED, REFUNDED
+}
