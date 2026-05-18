@@ -14,5 +14,6 @@
   },
   "devDependencies": {
     "turbo": "^2.9.12"
-  }
+  },
+  "packageManager": "npm@9.9.0"
 }
